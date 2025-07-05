@@ -9,9 +9,10 @@ jobs:
   enforce-pr-from-develop:
     runs-on: ubuntu-latest
     steps:
-      run: |
-          echo "Pull request from: ${{ github.head_ref }}"
-          if [[ "${{ github.head_ref }}" != "develop" ]]; then
-            echo "❌ ERROR: Pull requests to 'release' must come from 'develop'."
-            exit 1
-          fi
+      - name: Fail if PR is not from develop
+        run: |
+            echo "Pull request from: ${{ github.head_ref }}"
+            if [[ "${{ github.head_ref }}" != "develop" ]]; then
+              echo "❌ ERROR: Pull requests to 'release' must come from 'develop'."
+              exit 1
+            fi
