@@ -1,0 +1,17 @@
+name: Enforce PRs to main branch from release
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  enforce-pr-from-release:
+    runs-on: ubuntu-latest
+    steps:
+      run: |
+          echo "Pull request from: ${{ github.head_ref }}"
+          if [[ "${{ github.head_ref }}" != "release" ]]; then
+            echo "❌ ERROR: Pull requests to 'main' must come from 'release'."
+            exit 1
+          fi
