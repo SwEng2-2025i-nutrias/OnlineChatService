@@ -10,10 +10,18 @@ from ...application.use_cases.chat.get_user_chats import GetUserChatsUseCase
 from ...adapters.output.http_user_repository import HttpUserRepository
 from ...adapters.output.json_chat_repository import JsonChatRepository
 
+# Load environment variables
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+BASE_URL = os.getenv("BASE_URL", "http://localhost:5001/auth")
+
 chat_blueprint = Blueprint('chat', __name__)
 
 # Output adapters
-user_repository = HttpUserRepository(base_url="http://example.com/api")
+user_repository = HttpUserRepository(base_url=BASE_URL)
 chat_repository = JsonChatRepository()
 
 
