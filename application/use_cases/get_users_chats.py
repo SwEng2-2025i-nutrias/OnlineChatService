@@ -1,4 +1,4 @@
-from ...domain.ports.input.get_user_chats import GetUserChats
+from ...domain.ports.input.chat.get_user_chats import GetUserChats
 from ...domain.ports.output.chat_repository import ChatRepository
 from ...domain.entities.chat import Chat
 

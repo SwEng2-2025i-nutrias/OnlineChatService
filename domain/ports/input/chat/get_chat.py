@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from ...entities.chat import Chat
+from ....entities.chat import Chat
 
 # Interface for getting a chat by ID
 class GetChat(ABC):

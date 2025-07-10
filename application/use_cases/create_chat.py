@@ -1,4 +1,4 @@
-from ...domain.ports.input.create_chat import CreateChat
+from ...domain.ports.input.chat.create_chat import CreateChat
 from ...domain.ports.output.chat_repository import ChatRepository
 from ...domain.entities.chat import Chat
 
