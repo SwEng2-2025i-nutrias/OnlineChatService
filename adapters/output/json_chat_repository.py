@@ -43,6 +43,7 @@ class JsonChatRepository(ChatRepository):
         chat.set_id(self._generate_id(db))
         chat_data = chat.to_dict()
         db.append(chat_data)
+        self._save_db(db)
         return chat
     
     def update_chat(self, chat: Chat) -> None:

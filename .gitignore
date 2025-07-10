@@ -260,7 +260,7 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,flask
-adapters/output/user_repository/db.json
 
 # Visual Studio Code settings
 .vscode/
+adapters/output/db.json
