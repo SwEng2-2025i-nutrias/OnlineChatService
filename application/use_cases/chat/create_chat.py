@@ -1,9 +1,9 @@
-from ...domain.ports.input.chat.create_chat import CreateChat
-from ...domain.ports.output.chat_repository import ChatRepository
-from ...domain.entities.chat import Chat
+from ....domain.ports.input.chat.create_chat import CreateChat
+from ....domain.ports.output.chat_repository import ChatRepository
+from ....domain.entities.chat import Chat
 
-from ...domain.ports.output.user_repository import UserRepository
-from ...domain.entities.participant import Participant
+from ....domain.ports.output.user_repository import UserRepository
+from ....domain.entities.participant import Participant
 
 from typing import Optional
 
