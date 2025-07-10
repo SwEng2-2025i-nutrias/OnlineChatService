@@ -1,16 +1,24 @@
 tags:
   - Chat
 summary: Create a new chat
-description: Creates a new chat with the specified list of user IDs.
+description: >
+  Creates a new chat with the specified user IDs.  
+  Requires authentication via Bearer token in the Authorization header.  
+  The authenticated user's ID must be included in the `user_ids` list.
 consumes:
   - application/json
 produces:
   - application/json
 parameters:
+  - in: header
+    name: Authorization
+    required: true
+    type: string
+    description: "Bearer JWT token. Format: Bearer <token>"
   - in: body
     name: body
     required: true
-    description: List of user IDs to include in the chat
+    description: JSON object containing the list of user IDs
     schema:
       type: object
       required:
@@ -18,6 +26,7 @@ parameters:
       properties:
         user_ids:
           type: array
+          description: List of user IDs to include in the chat
           items:
             type: string
           example: ["64ddc9288f7a123456789abc", "64ddc9288f7a123456789def"]
@@ -65,18 +74,21 @@ responses:
           additionalProperties:
             type: integer
   400:
-    description: Invalid input data
+    description: Invalid input or business logic error
     schema:
       type: object
       properties:
         error:
           type: string
-          example: user_ids is required
-  500:
-    description: Internal server error
+          example: You must include your user ID in the user_ids list
+  401:
+    description: Unauthorized - missing or invalid token
     schema:
       type: object
       properties:
         error:
           type: string
-          example: Unexpected error while creating chat
+          example: Invalid token
+        message:
+          type: string
+          example: Token is expired or invalid
