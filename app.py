@@ -2,7 +2,13 @@ from flask import Flask
 from flask_cors import CORS
 from flasgger import Swagger
 
+from dotenv import load_dotenv
+
 from adapters.input.chat_controller import chat_blueprint
+
+# Cargar variables de entorno
+load_dotenv()
+
 
 app = Flask(__name__)
 
