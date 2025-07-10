@@ -70,3 +70,18 @@ def get_chat(chat_id:str):
         
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+    
+# Get chats by user ID endpoint
+@chat_blueprint.route('/chats', methods=['GET'])
+@swag_from("docs/get_user_chats.yaml")
+def get_user_chats():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+    
+    try:
+        chats = get_user_chats_use_case.get_user_chats(user_id)
+        return jsonify([chat.to_dict() for chat in chats]), 200
+        
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
