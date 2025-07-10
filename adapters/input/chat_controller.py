@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, g
 from flasgger import swag_from
 
 #Use cases
@@ -11,10 +11,10 @@ from adapters.output.http_user_repository import HttpUserRepository
 from adapters.output.json_chat_repository import JsonChatRepository
 
 # Load environment variables
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# Middleware
+from adapters.middleware.auth_middleware import AuthMiddleware
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:5001/auth")
 
@@ -37,9 +37,14 @@ get_chat_use_case = GetChatUseCase(
     chat_repository=chat_repository  # Replace with actual repository instance
 )
 
+# Middleware instantiation
+auth_middleware = AuthMiddleware(auth_service_url=BASE_URL + '/validate-token')
+require_auth = auth_middleware.require_auth
+
 # Chat creation endpoint
 @chat_blueprint.route('/chats', methods=['POST'])
 @swag_from("docs/create_chat.yaml")
+@require_auth
 def create_chat():
     data = request.json
     if not data:
@@ -49,6 +54,11 @@ def create_chat():
         return jsonify({"error": "user_ids is required"}), 400
     
     user_ids:list[str] = data["user_ids"]
+
+    # Check if user_ids has the token of the user who is creating the chat
+    user_id = g.user_id
+    if user_id not in user_ids:
+        return jsonify({"error": "You must include your user ID in the user_ids list"}), 400
 
     try:
         chat = create_chat_use_case.create_chat(
