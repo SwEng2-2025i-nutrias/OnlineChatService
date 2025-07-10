@@ -1,0 +1,90 @@
+tags:
+  - Chat
+summary: Get chat by ID
+description: >
+  Retrieves a specific chat by its ID.  
+  Requires authentication via a Bearer token.  
+  The authenticated user must be a participant of the chat.
+produces:
+  - application/json
+parameters:
+  - in: header
+    name: Authorization
+    required: true
+    type: string
+    description: "Bearer JWT token. Format: **Bearer <token>**"
+  - in: path
+    name: chat_id
+    required: true
+    type: string
+    description: ID of the chat to retrieve
+responses:
+  200:
+    description: Chat retrieved successfully
+    schema:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "9f838fa4-6129-4ff2-bb0c-23fae21e69d0"
+        type:
+          type: string
+          example: "group"
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                example: "64ddc9288f7a123456789abc"
+              role:
+                type: string
+                example: "member"
+              joined_at:
+                type: string
+                format: date-time
+        metadata:
+          type: object
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        last_message_at:
+          type: string
+          format: date-time
+          nullable: true
+        unread_counts:
+          type: object
+          additionalProperties:
+            type: integer
+  401:
+    description: Unauthorized - missing or invalid token
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid token
+        message:
+          type: string
+          example: Auth service returned 401
+  403:
+    description: Forbidden - user not a participant
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: You are not a participant of this chat
+  404:
+    description: Chat not found
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Chat not found
