@@ -1,0 +1,82 @@
+tags:
+  - Chat
+summary: Create a new chat
+description: Creates a new chat with the specified list of user IDs.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    description: List of user IDs to include in the chat
+    schema:
+      type: object
+      required:
+        - user_ids
+      properties:
+        user_ids:
+          type: array
+          items:
+            type: string
+          example: ["64ddc9288f7a123456789abc", "64ddc9288f7a123456789def"]
+responses:
+  201:
+    description: Chat created successfully
+    schema:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "9f838fa4-6129-4ff2-bb0c-23fae21e69d0"
+        type:
+          type: string
+          example: "group"
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                example: "64ddc9288f7a123456789abc"
+              role:
+                type: string
+                example: "member"
+              joined_at:
+                type: string
+                format: date-time
+        metadata:
+          type: object
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        last_message_at:
+          type: string
+          format: date-time
+          nullable: true
+        unread_counts:
+          type: object
+          additionalProperties:
+            type: integer
+  400:
+    description: Invalid input data
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: user_ids is required
+  500:
+    description: Internal server error
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unexpected error while creating chat
