@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from participant import Participant 
 
 class Chat:
@@ -35,3 +35,62 @@ class Chat:
             last_message_at=None,
             unread_counts={participant["user_id"]: 0 for participant in participants}
         )
+    
+    # Method to get the id
+    def get_id(self) -> Optional[str]:
+        return self._id
+    
+    # Method to set the id
+    def set_id(self, _id: str) -> None:
+        self._id = _id
+    
+    # Method to obtain a chat from a dictionary
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        _id:str = data["_id"]
+        type:str = data["type"]
+        participants: list[Participant] = [
+            Participant(
+                user_id=p["user_id"],
+                role=p["role"],
+                joined_at=datetime.fromisoformat(p["joined_at"])
+            )
+            for p in data["participants"]
+        ]
+        metadata: Optional[Dict[str, int]] = data.get("metadata")
+        title: Optional[str] = data.get("title")
+        created_at: datetime = datetime.fromisoformat(data["created_at"])
+        last_message_at_raw = data.get("last_message_at")
+        last_message_at: Optional[datetime] = (
+            datetime.fromisoformat(last_message_at_raw) if last_message_at_raw else None
+        )
+        unread_counts: Dict[str, int] = data.get("unread_counts", {})
+
+        return cls(
+            _id=_id,
+            type=type,
+            participants=participants,
+            metadata=metadata,
+            title=title,
+            created_at=created_at,
+            last_message_at=last_message_at,
+            unread_counts=unread_counts
+        )
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "_id": self._id,
+            "type": self.type,
+            "participants": [
+                {
+                    "user_id": p["user_id"],
+                    "role": p["role"],
+                    "joined_at": p["joined_at"].isoformat()
+                } for p in self.participants
+            ],
+            "metadata": self.metadata,
+            "title": self.title,
+            "created_at": self.created_at.isoformat(),
+            "last_message_at": self.last_message_at.isoformat() if self.last_message_at else None,
+            "unread_counts": self.unread_counts
+        }
