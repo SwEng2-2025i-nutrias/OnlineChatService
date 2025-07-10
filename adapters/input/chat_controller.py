@@ -42,9 +42,10 @@ auth_middleware = AuthMiddleware(auth_service_url=BASE_URL + '/validate-token')
 require_auth = auth_middleware.require_auth
 
 # Chat creation endpoint
+# The correct order for the decorators is important
 @chat_blueprint.route('/chats', methods=['POST'])
-@swag_from("docs/create_chat.yaml")
 @require_auth
+@swag_from("docs/create_chat.yaml")
 def create_chat():
     data = request.json
     if not data:
