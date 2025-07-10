@@ -17,4 +17,4 @@ class GetUserChatsUseCase(GetUserChats):
         except Exception as e:
             raise ValueError(f"An error occurred while retrieving chats for user {user_id}: {str(e)}")
         
-        return chats
+        return chats if chats else []
