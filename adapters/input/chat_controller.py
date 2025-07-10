@@ -50,7 +50,10 @@ def create_chat():
     
     user_ids:list[str] = data["user_ids"]
 
-    chat = create_chat_use_case.create_chat(
-        user_ids=user_ids,
-    )
+    try:
+        chat = create_chat_use_case.create_chat(
+            user_ids=user_ids,
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     return jsonify(chat.to_dict()), 201

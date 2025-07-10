@@ -39,8 +39,6 @@ class CreateChatUseCase(CreateChat):
 
             participants.append(participant)
 
-
-
         # Create a new chat instance
         chat = Chat.create(
             participants=participants,
