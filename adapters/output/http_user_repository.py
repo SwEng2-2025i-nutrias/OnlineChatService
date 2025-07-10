@@ -10,7 +10,6 @@ class HttpUserRepository(UserRepository):
 
     def get_by_id(self, user_id: str) -> Optional[User]:
         response = requests.get(f"{self.base_url}/users/{user_id}")
-        print("response", response.text)
         # TODO: Test if the response is correctly formatted
         if response.status_code == 200:
             json_data = response.json()
