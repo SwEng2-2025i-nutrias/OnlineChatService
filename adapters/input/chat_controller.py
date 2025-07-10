@@ -93,7 +93,7 @@ def get_chat(chat_id:str):
 # Get chats by user ID endpoint
 @chat_blueprint.route('/chats', methods=['GET'])
 @require_auth
-# @swag_from("docs/get_user_chats.yaml")
+@swag_from("docs/get_user_chats.yaml")
 def get_user_chats():
     user_id = request.args.get('user_id')
 
