@@ -57,3 +57,16 @@ def create_chat():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify(chat.to_dict()), 201
+
+# Get a chat by ID endpoint
+@chat_blueprint.route('/chats/<string:chat_id>', methods=['GET'])
+@swag_from("docs/get_chat.yaml")
+def get_chat(chat_id:str):
+    try:
+        chat = get_chat_use_case.get_chat(chat_id)
+        if not chat:
+            return jsonify({"error": "Chat not found"}), 404
+        return jsonify(chat.to_dict()), 200
+        
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
