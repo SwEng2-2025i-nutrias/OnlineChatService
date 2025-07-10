@@ -1,6 +1,6 @@
-from ....domain.ports.input.chat.get_chat import GetChat
-from ....domain.ports.output.chat_repository import ChatRepository
-from ....domain.entities.chat import Chat
+from domain.ports.input.chat.get_chat import GetChat
+from domain.ports.output.chat_repository import ChatRepository
+from domain.entities.chat import Chat
 
 from typing import Optional
 

@@ -1,7 +1,7 @@
 # domain/ports/message_repository.py
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from ...entities.message import Message
+from entities.message import Message
 
 class MessageRepository(ABC):
     @abstractmethod

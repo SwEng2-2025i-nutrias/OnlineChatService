@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
-from ....entities.chat import Chat
+from domain.entities.chat import Chat
 
 # Interface for creating a chat
 class CreateChat(ABC):

@@ -1,6 +1,6 @@
-from ....domain.ports.input.message.send_message import SendMessage
-from ....domain.ports.output.message_repository import MessageRepository
-from ....domain.entities.message import Message, Attachment
+from domain.ports.input.message.send_message import SendMessage
+from domain.ports.output.message_repository import MessageRepository
+from domain.entities.message import Message, Attachment
 
 from typing import Optional, List
 

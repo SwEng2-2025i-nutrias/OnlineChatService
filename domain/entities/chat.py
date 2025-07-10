@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from participant import Participant 
+from .participant import Participant 
 
 class Chat:
     def __init__(

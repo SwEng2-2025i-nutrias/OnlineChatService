@@ -2,13 +2,13 @@ from flask import request, jsonify, Blueprint
 from flasgger import swag_from
 
 #Use cases
-from ...application.use_cases.chat.create_chat import CreateChatUseCase
-from ...application.use_cases.chat.get_chat import GetChatUseCase
-from ...application.use_cases.chat.get_user_chats import GetUserChatsUseCase
+from application.use_cases.chat.create_chat import CreateChatUseCase
+from application.use_cases.chat.get_chat import GetChatUseCase
+from application.use_cases.chat.get_user_chats import GetUserChatsUseCase
 
 # Output adapters
-from ...adapters.output.http_user_repository import HttpUserRepository
-from ...adapters.output.json_chat_repository import JsonChatRepository
+from adapters.output.http_user_repository import HttpUserRepository
+from adapters.output.json_chat_repository import JsonChatRepository
 
 # Load environment variables
 from dotenv import load_dotenv
