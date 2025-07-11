@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from attachment import Attachment  
 
 class Message:
@@ -35,3 +35,28 @@ class Message:
             attachment=attachments or [],
             status="sent"  # Initial status
         )
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        return cls(
+            _id=data.get("_id"),
+            chat_id=data["chat_id"],
+            sender_id=data["sender_id"],
+            sent_at=datetime.fromisoformat(data["sent_at"]),
+            type=data["type"],
+            content=data.get("content"),
+            attachment=data.get("attachment", []), 
+            status=data["status"]
+        )
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "_id": self._id,
+            "chat_id": self.chat_id,
+            "sender_id": self.sender_id,
+            "sent_at": self.sent_at.isoformat(),
+            "type": self.type,
+            "content": self.content,
+            "attachment": self.attachment, 
+            "status": self.status
+        }
