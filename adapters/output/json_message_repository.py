@@ -7,7 +7,7 @@ from typing import Optional, Any
 
 DB_FILE = Path(__file__).parent / 'db_message.json'
 
-class JsonChatRepository(MessageRepository):
+class JsonMessageRepository(MessageRepository):
     def _load_db(self)->list[dict[str, Any]]:
         try:
             with open(DB_FILE, 'r') as file:
