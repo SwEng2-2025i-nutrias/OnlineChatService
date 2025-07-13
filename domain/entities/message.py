@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from attachment import Attachment  
+from .attachment import Attachment  
 
 class Message:
     def __init__(

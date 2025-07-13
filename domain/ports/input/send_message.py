@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
-from ...entities.message import Message, Attachment
+from domain.entities.message import Message
+from domain.entities.attachment import Attachment
 
 # Interface for sending messages
 class SendMessage(ABC):
