@@ -23,10 +23,57 @@ class WebSocketServer:
         """Configurar eventos del websocket"""
         
         @self.sio.event
-        async def connect(sid, environ):
+        async def connect(sid, environ, auth):
             """Cliente conectado"""
             print(f"🟢 Cliente conectado: {sid}")
             
+            if not auth or 'token' not in auth:
+                print(f"❌ Autenticación fallida para {sid}: No se proporcionó token")
+                return False
+            
+            try:
+                token = auth['token']
+                # Importar aquí para evitar circular imports
+                from infrastructure.auth.auth_middleware import auth_middleware
+                
+                # Validar token JWT
+                validation_result = await auth_middleware.validate_websocket_token(token)
+                
+                if not validation_result.get("valid", False):
+                    error_message = validation_result.get("error", "Token inválido")
+                    print(f"❌ Autenticación fallida para {sid}: {error_message}")
+                    return False
+                
+                user_id = validation_result.get("user_id")
+                if not user_id:
+                    print(f"❌ Autenticación fallida para {sid}: Token sin user_id")
+                    return False
+                
+                # Registrar conexión
+                if user_id not in self.active_connections:
+                    self.active_connections[user_id] = []
+                self.active_connections[user_id].append(sid)
+                self.session_users[sid] = user_id
+                
+                # Guardar información de autenticación en la sesión
+                await self.sio.save_session(sid, {
+                    'user_id': user_id,
+                    'auth_data': validation_result,
+                    'authenticated': True,
+                    'token': token
+                })
+                
+                await self.sio.emit('authenticated', {
+                    'user_id': user_id,
+                    'user_data': validation_result
+                }, room=sid)
+                print(f"✅ Usuario {user_id} autenticado en sesión {sid}")
+                
+                return True
+            except Exception as e:
+                print(f"❌ Error en autenticación para {sid}: {str(e)}")
+                return False
+        
         @self.sio.event
         async def disconnect(sid):
             """Cliente desconectado"""
@@ -110,11 +157,32 @@ class WebSocketServer:
                     await self.sio.emit('error', {'message': 'chat_id requerido'}, room=sid)
                     return
                 
+                # Verificar autenticación
+                try:
+                    session = await self.sio.get_session(sid)
+                    if not session.get('authenticated', False):
+                        await self.sio.emit('error', {
+                            'message': 'No autenticado',
+                            'details': 'Debe autenticarse antes de unirse a un chat'
+                        }, room=sid)
+                        return
+                    
+                    user_id = session.get('user_id')
+                    print(f"👤 Usuario {user_id} intentando unirse al chat {chat_id}")
+                    
+                except Exception as e:
+                    await self.sio.emit('error', {
+                        'message': 'Error de sesión',
+                        'details': str(e)
+                    }, room=sid)
+                    return
+                
                 await self.sio.enter_room(sid, chat_id)
                 await self.sio.emit('joined_chat', {'chat_id': chat_id}, room=sid)
-                print(f"📨 Sesión {sid} se unió al chat {chat_id}")
+                print(f"✅ Sesión {sid} (usuario {user_id}) se unió al chat {chat_id}")
                 
             except Exception as e:
+                print(f"❌ Error en join_chat: {e}")
                 await self.sio.emit('error', {'message': str(e)}, room=sid)
         
         @self.sio.event
@@ -126,11 +194,19 @@ class WebSocketServer:
                     await self.sio.emit('error', {'message': 'chat_id requerido'}, room=sid)
                     return
                 
+                # Verificar autenticación
+                try:
+                    session = await self.sio.get_session(sid)
+                    user_id = session.get('user_id', 'unknown')
+                except:
+                    user_id = 'unknown'
+                
                 await self.sio.leave_room(sid, chat_id)
                 await self.sio.emit('left_chat', {'chat_id': chat_id}, room=sid)
-                print(f"📤 Sesión {sid} salió del chat {chat_id}")
+                print(f"📤 Sesión {sid} (usuario {user_id}) salió del chat {chat_id}")
                 
             except Exception as e:
+                print(f"❌ Error en leave_chat: {e}")
                 await self.sio.emit('error', {'message': str(e)}, room=sid)
         
         @self.sio.event
@@ -177,10 +253,15 @@ class WebSocketServer:
         """Broadcast de nuevo mensaje a todos los usuarios del chat"""
         chat_id = message_data.get('chat_id')
         if chat_id:
+            print(f"📢 Broadcasting mensaje a chat {chat_id}: {message_data.get('content', '')[:50]}...")
             await self.sio.emit('new_message', message_data, room=chat_id)
+            print(f"✅ Mensaje enviado a sala {chat_id}")
+        else:
+            print(f"❌ No se puede enviar mensaje: chat_id faltante en {message_data}")
     
     async def broadcast_message_status(self, message_id: str, status: str, chat_id: str):
         """Broadcast de cambio de estado de mensaje"""
+        print(f"📢 Broadcasting cambio de estado del mensaje {message_id} a {status} en chat {chat_id}")
         await self.sio.emit('message_status_updated', {
             'message_id': message_id,
             'status': status
