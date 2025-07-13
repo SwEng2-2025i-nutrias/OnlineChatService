@@ -1,5 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
+import pytz
 from domain.entities.message import Message
 from domain.entities.attachment import Attachment
 from domain.entities.chat import Chat
@@ -46,12 +47,15 @@ class SendMessageUseCase(SendMessage):
         if not user_is_participant:
             raise ValueError("Usuario no es participante del chat")
         
+        # Obtener zona horaria de Colombia
+        colombia_tz = pytz.timezone('America/Bogota')
+        
         # Crear mensaje
         message = Message(
             _id="",  # Se asignará por MongoDB
             chat_id=chat_id,
             sender_id=user_id,
-            sent_at=datetime.utcnow(),
+            sent_at=datetime.now(colombia_tz),
             type=message_type,
             content=content,
             attachment=attachments or [],
