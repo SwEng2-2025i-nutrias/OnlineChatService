@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from ...entities.chat import Chat
+from domain.entities.chat import Chat
 
 # Interface for chat repository
 class ChatRepository(ABC):

@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-socketio
+motor
+pymongo
+pydantic
+python-multipart
+websockets
+aiohttp
+requests
+PyJWT 
+pytz 
