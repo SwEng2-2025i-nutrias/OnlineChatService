@@ -14,6 +14,255 @@ Un servicio de chat en tiempo real desarrollado con **FastAPI**, **Socket.IO** y
 - 👥 **Chats grupales** e individuales
 - 🔌 **Conexiones múltiples** por usuario
 
+## 🏗️ Arquitectura del Sistema
+
+El proyecto sigue una **arquitectura hexagonal (Clean Architecture)** que separa las responsabilidades en capas bien definidas. A continuación se muestran los diagramas de flujo para cada funcionalidad principal:
+
+### 🎨 Código de Colores por Capas
+
+- **🔵 Azul Claro**: Capa de Cliente/Presentación
+- **🟢 Verde Claro**: Capa de Controladores/API
+- **🟡 Amarillo Claro**: Capa de Aplicación (Casos de Uso)
+- **🟠 Naranja Claro**: Capa de Infraestructura
+- **🟣 Morado Claro**: Capa de Base de Datos
+
+---
+
+### 🔐 1. Autenticación WebSocket
+
+```mermaid
+flowchart TB
+    A["🌐 Cliente: Conectar a WebSocket"] --> B["🔌 WebSocket Server: Recibir conexión"]
+    B --> C["🔌 WebSocket Server: Esperar evento 'authenticate'"]
+    C --> D["🌐 Cliente: Enviar evento 'authenticate' con token JWT"]
+    D --> E["🔐 Auth Middleware: Validar token JWT"]
+    E --> F{"🔐 Auth Middleware: ¿Token válido?"}
+    
+    F -- No --> G["🔌 WebSocket Server: Emit 'error' - Token inválido"]
+    G --> H["🌐 Cliente: Recibir error de autenticación"]
+    H --> End["End"]
+    
+    F -- Yes --> I["🔌 WebSocket Server: Registrar usuario en conexiones activas"]
+    I --> J["🔌 WebSocket Server: Guardar sesión con user_id"]
+    J --> K["🔌 WebSocket Server: Emit 'authenticated' con datos de usuario"]
+    K --> L["🌐 Cliente: Recibir confirmación de autenticación"]
+    L --> End
+
+    %% Color styles
+    style A fill:#BBDEFB
+    style H fill:#BBDEFB
+    style L fill:#BBDEFB
+    
+    style B fill:#C8E6C9
+    style C fill:#C8E6C9
+    style G fill:#C8E6C9
+    style I fill:#C8E6C9
+    style J fill:#C8E6C9
+    style K fill:#C8E6C9
+    
+    style E fill:#FFE0B2
+    style F fill:#FFE0B2
+```
+
+---
+
+### 💬 2. Creación de Chats
+
+```mermaid
+flowchart TB
+    A["🌐 Cliente: Enviar evento 'create_chat'"] --> B["🔌 WebSocket Handlers: Recibir evento"]
+    B --> C{"🔐 WebSocket Handlers: ¿Usuario autenticado?"}
+    
+    C -- No --> D["🔌 WebSocket Server: Emit 'error' - No autenticado"]
+    D --> End["End"]
+    
+    C -- Yes --> E["🔌 WebSocket Handlers: Extraer user_ids y descripción"]
+    E --> F["📝 Create Chat Use Case: Validar participantes"]
+    F --> G{"📝 Create Chat Use Case: ¿Datos válidos?"}
+    
+    G -- No --> H["🔌 WebSocket Server: Emit 'error' - Datos inválidos"]
+    H --> End
+    
+    G -- Yes --> I["📝 Create Chat Use Case: Crear entidades Chat y Participants"]
+    I --> J["💾 MongoDB Chat Repository: Guardar chat en BD"]
+    J --> K["🗄️ MongoDB Database: Insertar documento en collection 'chats'"]
+    K --> L["📡 WebSocket Server: Broadcast 'chat_created' a participantes"]
+    L --> M["🌐 Clientes Participantes: Recibir notificación 'chat_created'"]
+    M --> End
+
+    %% Color styles
+    style A fill:#BBDEFB
+    style M fill:#BBDEFB
+    
+    style B fill:#C8E6C9
+    style D fill:#C8E6C9
+    style E fill:#C8E6C9
+    style H fill:#C8E6C9
+    
+    style F fill:#FFF9C4
+    style G fill:#FFF9C4
+    style I fill:#FFF9C4
+    
+    style C fill:#FFE0B2
+    style J fill:#FFE0B2
+    style L fill:#FFE0B2
+    
+    style K fill:#E1BEE7
+```
+
+---
+
+### 📨 3. Envío de Mensajes
+
+```mermaid
+flowchart TB
+    A["🌐 Cliente: Enviar evento 'send_message'"] --> B["🔌 WebSocket Handlers: Recibir evento"]
+    B --> C{"🔐 WebSocket Handlers: ¿Usuario autenticado?"}
+    
+    C -- No --> D["🔌 WebSocket Server: Emit 'error' - No autenticado"]
+    D --> End["End"]
+    
+    C -- Yes --> E["🔌 WebSocket Handlers: Extraer datos del mensaje"]
+    E --> F["📨 Send Message Use Case: Validar chat_id y user_id"]
+    F --> G{"📨 Send Message Use Case: ¿Usuario es participante?"}
+    
+    G -- No --> H["🔌 WebSocket Server: Emit 'error' - No autorizado"]
+    H --> End
+    
+    G -- Yes --> I["📨 Send Message Use Case: Crear entidad Message"]
+    I --> J["💾 MongoDB Message Repository: Guardar mensaje en BD"]
+    J --> K["🗄️ MongoDB Database: Insertar en collection 'messages'"]
+    K --> L["💾 MongoDB Chat Repository: Actualizar last_message_at del chat"]
+    L --> M["📡 WebSocket Server: Broadcast 'new_message' a sala del chat"]
+    M --> N["🌐 Clientes en Chat: Recibir notificación 'new_message'"]
+    N --> End
+
+    %% Color styles
+    style A fill:#BBDEFB
+    style N fill:#BBDEFB
+    
+    style B fill:#C8E6C9
+    style D fill:#C8E6C9
+    style E fill:#C8E6C9
+    style H fill:#C8E6C9
+    
+    style F fill:#FFF9C4
+    style G fill:#FFF9C4
+    style I fill:#FFF9C4
+    
+    style C fill:#FFE0B2
+    style J fill:#FFE0B2
+    style L fill:#FFE0B2
+    style M fill:#FFE0B2
+    
+    style K fill:#E1BEE7
+```
+
+---
+
+### 🏠 4. Gestión de Salas de Chat
+
+```mermaid
+flowchart TB
+    A["🌐 Cliente: Enviar evento 'join_chat'"] --> B["🔌 WebSocket Server: Recibir evento"]
+    B --> C{"🔐 WebSocket Server: ¿Usuario autenticado?"}
+    
+    C -- No --> D["🔌 WebSocket Server: Emit 'error' - No autenticado"]
+    D --> End["End"]
+    
+    C -- Yes --> E["🔌 WebSocket Server: Extraer chat_id"]
+    E --> F{"🔌 WebSocket Server: ¿chat_id válido?"}
+    
+    F -- No --> G["🔌 WebSocket Server: Emit 'error' - chat_id requerido"]
+    G --> End
+    
+    F -- Yes --> H["🔌 WebSocket Server: Unir sesión a sala del chat"]
+    H --> I["🔌 WebSocket Server: Emit 'joined_chat' al cliente"]
+    I --> J["🌐 Cliente: Recibir confirmación 'joined_chat'"]
+    J --> End
+    
+    %% Flujo de Leave Chat
+    K["🌐 Cliente: Enviar evento 'leave_chat'"] --> L["🔌 WebSocket Server: Extraer chat_id"]
+    L --> M["🔌 WebSocket Server: Remover sesión de sala del chat"]
+    M --> N["🔌 WebSocket Server: Emit 'left_chat' al cliente"]
+    N --> O["🌐 Cliente: Recibir confirmación 'left_chat'"]
+    O --> End
+
+    %% Color styles
+    style A fill:#BBDEFB
+    style J fill:#BBDEFB
+    style K fill:#BBDEFB
+    style O fill:#BBDEFB
+    
+    style B fill:#C8E6C9
+    style D fill:#C8E6C9
+    style E fill:#C8E6C9
+    style G fill:#C8E6C9
+    style H fill:#C8E6C9
+    style I fill:#C8E6C9
+    style L fill:#C8E6C9
+    style M fill:#C8E6C9
+    style N fill:#C8E6C9
+    
+    style C fill:#FFE0B2
+    style F fill:#FFE0B2
+```
+
+---
+
+### ⌨️ 5. Indicadores de Escritura
+
+```mermaid
+flowchart TB
+    A["🌐 Cliente: Usuario empieza a escribir"] --> B["🌐 Cliente: Enviar evento 'typing_start'"]
+    B --> C["🔌 WebSocket Server: Recibir evento con chat_id"]
+    C --> D["🔌 WebSocket Server: Obtener user_id de la sesión"]
+    D --> E["📡 WebSocket Server: Broadcast 'user_typing' (typing: true)"]
+    E --> F["🌐 Otros Clientes en Chat: Recibir 'user_typing'"]
+    F --> G["🌐 Otros Clientes: Mostrar indicador 'Usuario escribiendo...'"]
+    
+    %% Flujo de Stop Typing
+    H["🌐 Cliente: Usuario deja de escribir"] --> I["🌐 Cliente: Enviar evento 'typing_stop'"]
+    I --> J["🔌 WebSocket Server: Recibir evento con chat_id"]
+    J --> K["🔌 WebSocket Server: Obtener user_id de la sesión"]
+    K --> L["📡 WebSocket Server: Broadcast 'user_typing' (typing: false)"]
+    L --> M["🌐 Otros Clientes en Chat: Recibir 'user_typing'"]
+    M --> N["🌐 Otros Clientes: Ocultar indicador de escritura"]
+    
+    G --> End["End"]
+    N --> End
+
+    %% Color styles
+    style A fill:#BBDEFB
+    style B fill:#BBDEFB
+    style F fill:#BBDEFB
+    style G fill:#BBDEFB
+    style H fill:#BBDEFB
+    style I fill:#BBDEFB
+    style M fill:#BBDEFB
+    style N fill:#BBDEFB
+    
+    style C fill:#C8E6C9
+    style D fill:#C8E6C9
+    style J fill:#C8E6C9
+    style K fill:#C8E6C9
+    
+    style E fill:#FFE0B2
+    style L fill:#FFE0B2
+```
+
+---
+
+### 📋 Componentes Principales
+
+1. **Cliente**: Aplicaciones web/mobile que consumen la API
+2. **FastAPI Server**: Servidor principal que maneja HTTP y WebSocket
+3. **Auth Middleware**: Validación de tokens JWT
+4. **Use Cases**: Lógica de negocio (crear chat, enviar mensaje, etc.)
+5. **Repositories**: Abstracción de acceso a datos
+6. **MongoDB**: Base de datos de persistencia
+7. **WebSocket Server**: Comunicación en tiempo real
+
 ## 🚀 Instalación Rápida
 
 ### 1. Requisitos Previos
