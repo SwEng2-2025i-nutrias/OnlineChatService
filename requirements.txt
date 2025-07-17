@@ -8,6 +8,5 @@ python-multipart
 websockets
 aiohttp
 requests
-httpx
 PyJWT 
 pytz 
