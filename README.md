@@ -40,16 +40,40 @@ source venv/bin/activate
 
 # Instalar dependencias
 pip install -r requirements.txt
+
+# Configurar variables de entorno
+cp .env.example .env
+# Edita el archivo .env con tus configuraciones específicas
 ```
 
-### 3. Configuración de MongoDB
+### 3. Configuración de Variables de Entorno
+
+El proyecto utiliza un archivo `.env` para la configuración. Copia el archivo `.env.example` y ajusta las variables según tu entorno:
+
+```bash
+# Copiar configuración base
+cp .env.example .env
+
+# Editar configuraciones
+# Configurar URL de MongoDB, puerto, claves JWT, etc.
+```
+
+**Variables principales a configurar:**
+
+- `MONGODB_URL`: URL de conexión a MongoDB (por defecto: `mongodb://localhost:27017`)
+- `DATABASE_NAME`: Nombre de la base de datos (por defecto: `chat_service`)
+- `HOST` y `PORT`: Host y puerto del servidor (por defecto: `0.0.0.0:8000`)
+- `USE_MOCK_AUTH`: Usar autenticación mock para desarrollo (por defecto: `true`)
+- `JWT_SECRET_KEY`: Clave secreta para JWT (⚠️ **cambiar en producción**)
+
+### 4. Configuración de MongoDB
 
 ```bash
 # Asegúrate de tener MongoDB corriendo
-# Por defecto se conecta a: mongodb://localhost:27017/chatservice
+# La URL se configura en el archivo .env
 ```
 
-### 4. Ejecutar el Servidor
+### 5. Ejecutar el Servidor
 
 ```bash
 python main.py
@@ -96,17 +120,17 @@ const socket = io('http://localhost:8000');
 
 // 2. Manejar conexión exitosa
 socket.on('connect', () => {
-    console.log('✅ Conectado al servidor');
+  console.log('✅ Conectado al servidor');
 });
 
 // 3. Autenticarse
 socket.emit('authenticate', {
-    token: 'tu_jwt_token_aqui'
+  token: 'tu_jwt_token_aqui',
 });
 
 // 4. Confirmar autenticación
-socket.on('authenticated', (data) => {
-    console.log('✅ Autenticado como:', data.user_id);
+socket.on('authenticated', data => {
+  console.log('✅ Autenticado como:', data.user_id);
 });
 ```
 
@@ -115,23 +139,23 @@ socket.on('authenticated', (data) => {
 ```javascript
 // Crear nuevo chat
 socket.emit('create_chat', {
-    user_ids: ['user1', 'user2', 'user3'],
-    description: 'Chat grupal de trabajo'
+  user_ids: ['user1', 'user2', 'user3'],
+  description: 'Chat grupal de trabajo',
 });
 
 // Escuchar confirmación
-socket.on('chat_created', (data) => {
-    console.log('✅ Chat creado:', data.id);
-    
-    // Unirse automáticamente al chat
-    socket.emit('join_chat', {
-        chat_id: data.id
-    });
+socket.on('chat_created', data => {
+  console.log('✅ Chat creado:', data.id);
+
+  // Unirse automáticamente al chat
+  socket.emit('join_chat', {
+    chat_id: data.id,
+  });
 });
 
 // Confirmar que te uniste
-socket.on('joined_chat', (data) => {
-    console.log('✅ Unido al chat:', data.chat_id);
+socket.on('joined_chat', data => {
+  console.log('✅ Unido al chat:', data.chat_id);
 });
 ```
 
@@ -140,16 +164,16 @@ socket.on('joined_chat', (data) => {
 ```javascript
 // Enviar mensaje
 socket.emit('send_message', {
-    chat_id: 'chat_id_aqui',
-    user_id: 'tu_user_id',
-    content: '¡Hola mundo!',
-    type: 'text'
+  chat_id: 'chat_id_aqui',
+  user_id: 'tu_user_id',
+  content: '¡Hola mundo!',
+  type: 'text',
 });
 
 // Recibir mensajes nuevos
-socket.on('new_message', (message) => {
-    console.log('📨 Nuevo mensaje:', message);
-    // message contiene: id, chat_id, sender_id, content, sent_at, etc.
+socket.on('new_message', message => {
+  console.log('📨 Nuevo mensaje:', message);
+  // message contiene: id, chat_id, sender_id, content, sent_at, etc.
 });
 ```
 
@@ -158,21 +182,21 @@ socket.on('new_message', (message) => {
 ```javascript
 // Indicar que empezaste a escribir
 socket.emit('typing_start', {
-    chat_id: 'chat_id_aqui'
+  chat_id: 'chat_id_aqui',
 });
 
 // Indicar que dejaste de escribir
 socket.emit('typing_stop', {
-    chat_id: 'chat_id_aqui'
+  chat_id: 'chat_id_aqui',
 });
 
 // Escuchar cuando otros escriben
-socket.on('user_typing', (data) => {
-    if (data.typing) {
-        console.log(`${data.user_id} está escribiendo...`);
-    } else {
-        console.log(`${data.user_id} dejó de escribir`);
-    }
+socket.on('user_typing', data => {
+  if (data.typing) {
+    console.log(`${data.user_id} está escribiendo...`);
+  } else {
+    console.log(`${data.user_id} dejó de escribir`);
+  }
 });
 ```
 
@@ -237,60 +261,61 @@ Content-Type: application/json
 ```html
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <script>
-        // 1. Conectar
-        const socket = io('http://localhost:8000');
-        
-        // 2. Autenticar
-        socket.on('connect', () => {
-            socket.emit('authenticate', {
-                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcjEiLCJuYW1lIjoiVXN1YXJpbyBEZSBQcnVlYmEifQ.test'
-            });
+      // 1. Conectar
+      const socket = io('http://localhost:8000');
+
+      // 2. Autenticar
+      socket.on('connect', () => {
+        socket.emit('authenticate', {
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcjEiLCJuYW1lIjoiVXN1YXJpbyBEZSBQcnVlYmEifQ.test',
         });
-        
-        // 3. Configurar eventos
-        socket.on('authenticated', (data) => {
-            console.log('Autenticado:', data.user_id);
-            
-            // Crear chat
-            socket.emit('create_chat', {
-                user_ids: ['user1', 'user2'],
-                description: 'Mi primer chat'
-            });
+      });
+
+      // 3. Configurar eventos
+      socket.on('authenticated', data => {
+        console.log('Autenticado:', data.user_id);
+
+        // Crear chat
+        socket.emit('create_chat', {
+          user_ids: ['user1', 'user2'],
+          description: 'Mi primer chat',
         });
-        
-        socket.on('chat_created', (data) => {
-            console.log('Chat creado:', data.id);
-            
-            // Unirse al chat
-            socket.emit('join_chat', { chat_id: data.id });
+      });
+
+      socket.on('chat_created', data => {
+        console.log('Chat creado:', data.id);
+
+        // Unirse al chat
+        socket.emit('join_chat', { chat_id: data.id });
+      });
+
+      socket.on('joined_chat', data => {
+        console.log('Unido al chat:', data.chat_id);
+
+        // Enviar mensaje
+        socket.emit('send_message', {
+          chat_id: data.chat_id,
+          user_id: 'user1',
+          content: '¡Hola desde JavaScript!',
+          type: 'text',
         });
-        
-        socket.on('joined_chat', (data) => {
-            console.log('Unido al chat:', data.chat_id);
-            
-            // Enviar mensaje
-            socket.emit('send_message', {
-                chat_id: data.chat_id,
-                user_id: 'user1',
-                content: '¡Hola desde JavaScript!',
-                type: 'text'
-            });
-        });
-        
-        socket.on('new_message', (message) => {
-            console.log('Nuevo mensaje:', message);
-        });
-        
-        socket.on('error', (error) => {
-            console.error('Error:', error);
-        });
+      });
+
+      socket.on('new_message', message => {
+        console.log('Nuevo mensaje:', message);
+      });
+
+      socket.on('error', error => {
+        console.error('Error:', error);
+      });
     </script>
-</body>
+  </body>
 </html>
 ```
 
@@ -306,7 +331,7 @@ sio = socketio.AsyncClient()
 @sio.event
 async def connect():
     print('✅ Conectado al servidor')
-    
+
     # Autenticarse
     await sio.emit('authenticate', {
         'token': 'tu_jwt_token_aqui'
@@ -315,7 +340,7 @@ async def connect():
 @sio.event
 async def authenticated(data):
     print(f'✅ Autenticado como: {data["user_id"]}')
-    
+
     # Crear chat
     await sio.emit('create_chat', {
         'user_ids': ['user1', 'user2'],
@@ -326,7 +351,7 @@ async def authenticated(data):
 async def chat_created(data):
     chat_id = data['id']
     print(f'✅ Chat creado: {chat_id}')
-    
+
     # Unirse al chat
     await sio.emit('join_chat', {'chat_id': chat_id})
 
@@ -334,7 +359,7 @@ async def chat_created(data):
 async def joined_chat(data):
     chat_id = data['chat_id']
     print(f'✅ Unido al chat: {chat_id}')
-    
+
     # Enviar mensaje
     await sio.emit('send_message', {
         'chat_id': chat_id,
@@ -390,33 +415,33 @@ OnlineChatService/
 
 ### 📤 Eventos que Puedes Enviar
 
-| Evento | Descripción | Parámetros |
-|--------|-------------|------------|
-| `authenticate` | Autenticarse con JWT | `{token: string}` |
-| `create_chat` | Crear nuevo chat | `{user_ids: string[], description?: string}` |
-| `join_chat` | Unirse a un chat | `{chat_id: string}` |
-| `leave_chat` | Salir de un chat | `{chat_id: string}` |
-| `send_message` | Enviar mensaje | `{chat_id: string, user_id: string, content: string, type: string}` |
-| `get_user_chats` | Obtener chats del usuario | `{user_id: string}` |
-| `get_chat_messages` | Obtener mensajes del chat | `{chat_id: string, limit?: number}` |
-| `typing_start` | Empezar a escribir | `{chat_id: string}` |
-| `typing_stop` | Dejar de escribir | `{chat_id: string}` |
+| Evento              | Descripción               | Parámetros                                                          |
+| ------------------- | ------------------------- | ------------------------------------------------------------------- |
+| `authenticate`      | Autenticarse con JWT      | `{token: string}`                                                   |
+| `create_chat`       | Crear nuevo chat          | `{user_ids: string[], description?: string}`                        |
+| `join_chat`         | Unirse a un chat          | `{chat_id: string}`                                                 |
+| `leave_chat`        | Salir de un chat          | `{chat_id: string}`                                                 |
+| `send_message`      | Enviar mensaje            | `{chat_id: string, user_id: string, content: string, type: string}` |
+| `get_user_chats`    | Obtener chats del usuario | `{user_id: string}`                                                 |
+| `get_chat_messages` | Obtener mensajes del chat | `{chat_id: string, limit?: number}`                                 |
+| `typing_start`      | Empezar a escribir        | `{chat_id: string}`                                                 |
+| `typing_stop`       | Dejar de escribir         | `{chat_id: string}`                                                 |
 
 ### 📥 Eventos que Puedes Recibir
 
-| Evento | Descripción | Datos |
-|--------|-------------|-------|
-| `connect` | Conectado al servidor | - |
-| `disconnect` | Desconectado del servidor | - |
-| `authenticated` | Autenticación exitosa | `{user_id: string, user_data: object}` |
-| `chat_created` | Chat creado | `{id: string, type: string, participants: array}` |
-| `joined_chat` | Unido al chat | `{chat_id: string}` |
-| `left_chat` | Salió del chat | `{chat_id: string}` |
-| `new_message` | Nuevo mensaje | `{id: string, chat_id: string, sender_id: string, content: string, ...}` |
-| `user_chats` | Lista de chats del usuario | `{chats: array}` |
-| `chat_messages` | Mensajes del chat | `{messages: array}` |
-| `user_typing` | Usuario escribiendo | `{user_id: string, chat_id: string, typing: boolean}` |
-| `error` | Error ocurrido | `{message: string, details?: string}` |
+| Evento          | Descripción                | Datos                                                                    |
+| --------------- | -------------------------- | ------------------------------------------------------------------------ |
+| `connect`       | Conectado al servidor      | -                                                                        |
+| `disconnect`    | Desconectado del servidor  | -                                                                        |
+| `authenticated` | Autenticación exitosa      | `{user_id: string, user_data: object}`                                   |
+| `chat_created`  | Chat creado                | `{id: string, type: string, participants: array}`                        |
+| `joined_chat`   | Unido al chat              | `{chat_id: string}`                                                      |
+| `left_chat`     | Salió del chat             | `{chat_id: string}`                                                      |
+| `new_message`   | Nuevo mensaje              | `{id: string, chat_id: string, sender_id: string, content: string, ...}` |
+| `user_chats`    | Lista de chats del usuario | `{chats: array}`                                                         |
+| `chat_messages` | Mensajes del chat          | `{messages: array}`                                                      |
+| `user_typing`   | Usuario escribiendo        | `{user_id: string, chat_id: string, typing: boolean}`                    |
+| `error`         | Error ocurrido             | `{message: string, details?: string}`                                    |
 
 ## 🛠️ Troubleshooting
 
@@ -436,9 +461,9 @@ mongosh --eval "db.runCommand({ping: 1})"
 
 ```javascript
 // Verificar que el token sea válido
-socket.on('error', (error) => {
-    console.error('Error de autenticación:', error);
-    // Renovar token o verificar formato
+socket.on('error', error => {
+  console.error('Error de autenticación:', error);
+  // Renovar token o verificar formato
 });
 ```
 
@@ -462,9 +487,56 @@ python main.py  # Los logs aparecen en consola
 curl http://localhost:8000/api/stats
 ```
 
+## ⚙️ Configuración de Variables de Entorno
+
+### Variables de Entorno Disponibles
+
+| Variable           | Descripción                   | Valor por Defecto                           | Requerido |
+| ------------------ | ----------------------------- | ------------------------------------------- | --------- |
+| `HOST`             | Host del servidor             | `0.0.0.0`                                   | No        |
+| `PORT`             | Puerto del servidor           | `8000`                                      | No        |
+| `DEBUG`            | Modo debug                    | `false`                                     | No        |
+| `USE_MOCK_AUTH`    | Usar autenticación mock       | `true`                                      | No        |
+| `JWT_SECRET_KEY`   | Clave secreta JWT             | `test-secret-key-only-for-development`      | Sí        |
+| `AUTH_SERVICE_URL` | URL servicio de autenticación | `http://localhost:5001/auth/validate-token` | No        |
+| `MONGODB_URL`      | URL de MongoDB                | `mongodb://localhost:27017`                 | No        |
+| `DATABASE_NAME`    | Nombre de la BD               | `chat_service`                              | No        |
+| `CORS_ORIGINS`     | Orígenes CORS permitidos      | `*`                                         | No        |
+| `LOG_LEVEL`        | Nivel de logging              | `INFO`                                      | No        |
+
+### Configuración para Desarrollo
+
+```bash
+# Copiar configuración base
+cp .env.example .env
+
+# Editar .env para desarrollo
+USE_MOCK_AUTH=true
+JWT_SECRET_KEY=tu-clave-secreta-desarrollo
+MONGODB_URL=mongodb://localhost:27017
+DEBUG=true
+LOG_LEVEL=DEBUG
+```
+
+### Configuración para Producción
+
+```bash
+# Variables críticas para producción
+USE_MOCK_AUTH=false
+JWT_SECRET_KEY=clave-super-secreta-y-segura-de-produccion
+AUTH_SERVICE_URL=https://tu-servicio-auth.com/validate-token
+MONGODB_URL=mongodb://usuario:password@tu-servidor-mongo:27017/chat_service
+CORS_ORIGINS=https://tu-dominio.com,https://app.tu-dominio.com
+DEBUG=false
+LOG_LEVEL=INFO
+```
+
+⚠️ **IMPORTANTE**: Nunca subas el archivo `.env` al repositorio. Usa `.env.example` como plantilla.
+
 ## 🔐 Seguridad
 
 - **JWT Tokens**: Todos los usuarios deben autenticarse
 - **Validación**: Usuarios solo pueden ver sus propios chats
-- **CORS**: Configurado para desarrollo (ajustar para producción)
+- **CORS**: Configurado desde variables de entorno
 - **Sanitización**: Los mensajes son validados antes de guardar
+- **Variables de Entorno**: Configuración sensible externalizada
