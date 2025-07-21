@@ -18,6 +18,9 @@ from application.use_cases.get_chats_use_case import GetChatsUseCase
 from infrastructure.repositories.mongo_chat_repository import MongoChatRepository
 from infrastructure.repositories.mongo_message_repository import MongoMessageRepository
 
+# Observabilidad
+from prometheus_fastapi_instrumentator import Instrumentator
+
 # Modelos Pydantic para API REST
 class CreateChatRequest(BaseModel):
     user_ids: List[str]
@@ -49,6 +52,8 @@ class ChatResponse(BaseModel):
     last_message_at: Optional[str]
     unread_counts: Dict[str, int]
 
+instrumentator = Instrumentator()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manejar el ciclo de vida de la aplicación"""
@@ -60,6 +65,9 @@ async def lifespan(app: FastAPI):
     
     # Inicializar manejadores de WebSocket
     websocket_handlers
+
+    # Inicializar instrumentador prometheus
+    instrumentator.instrument(app).expose(app)
     
     print("✅ Aplicación iniciada correctamente")
     

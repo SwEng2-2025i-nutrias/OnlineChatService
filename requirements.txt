@@ -10,3 +10,4 @@ aiohttp
 requests
 PyJWT 
 pytz 
+prometheus-fastapi-instrumentator
