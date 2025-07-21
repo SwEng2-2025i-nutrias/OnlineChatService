@@ -264,3 +264,4 @@ adapters/output/user_repository/db.json
 
 # Visual Studio Code settings
 .vscode/
+adapters/output/db.json
