@@ -1,4 +1,5 @@
 import socketio
+import os
 from fastapi import FastAPI
 from typing import Dict, List
 import json
@@ -6,10 +7,16 @@ from datetime import datetime
 
 class WebSocketServer:
     def __init__(self):
+        # Configuración de CORS desde variables de entorno
+        cors_origins = os.getenv("CORS_ORIGINS", "*")
+        # Si es una lista separada por comas, convertir a lista
+        if cors_origins and "," in cors_origins:
+            cors_origins = [origin.strip() for origin in cors_origins.split(",")]
+        
         self.sio = socketio.AsyncServer(
             async_mode='asgi',
-            cors_allowed_origins="*",
-            logger=True
+            cors_allowed_origins=cors_origins,
+            logger=os.getenv("DEBUG", "false").lower() == "true"
         )
         
         # Almacenar conexiones activas
