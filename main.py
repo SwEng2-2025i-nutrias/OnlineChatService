@@ -6,12 +6,24 @@ from contextlib import asynccontextmanager
 from typing import List, Dict, Optional, Any
 from pydantic import BaseModel
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
+
+# Debug: Verificar configuración de autenticación
+print(f"🔧 Configuración de autenticación:")
+print(f"   USE_MOCK_AUTH: {os.getenv('USE_MOCK_AUTH', 'true')}")
+print(f"   JWT_SECRET_KEY: {os.getenv('JWT_SECRET_KEY', 'NOT_SET')}")
+print(f"   AUTH_SERVICE_URL: {os.getenv('AUTH_SERVICE_URL', 'NOT_SET')}")
+print(f"   MONGODB_URL: {os.getenv('MONGODB_URL', 'NOT_SET')}")
+print(f"   DATABASE_NAME: {os.getenv('DATABASE_NAME', 'NOT_SET')}")
 
 # Imports de la aplicación
 from infrastructure.database.mongodb_config import mongo_config
 from infrastructure.websocket.websocket_server import websocket_server
 from infrastructure.websocket.websocket_handlers import websocket_handlers
-from infrastructure.auth.auth_middleware import get_current_user
+from infrastructure.auth.auth_middleware import get_current_user, auth_middleware
 from application.use_cases.create_chat_use_case import CreateChatUseCase
 from application.use_cases.send_message_use_case import SendMessageUseCase
 from application.use_cases.get_chats_use_case import GetChatsUseCase
@@ -79,9 +91,10 @@ app = FastAPI(
 )
 
 # Configurar CORS
+cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -98,6 +111,9 @@ message_repository = MongoMessageRepository()
 create_chat_use_case = CreateChatUseCase(chat_repository)
 send_message_use_case = SendMessageUseCase(message_repository, chat_repository)
 get_chats_use_case = GetChatsUseCase(chat_repository)
+
+# VERIFICACIÓN: Estado de configuración auth_middleware
+print(f"🔍 Estado auth_middleware.use_mock_auth: {auth_middleware.use_mock_auth}")
 
 # Endpoints REST API
 @app.get("/")
@@ -327,6 +343,7 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
     debug = os.getenv("DEBUG", "false").lower() == "true"
+    log_level = os.getenv("LOG_LEVEL", "info").lower()
     
     print(f"🚀 Iniciando servidor en {host}:{port}")
     print(f"📡 WebSocket disponible en ws://{host}:{port}/socket.io/")
@@ -336,5 +353,5 @@ if __name__ == "__main__":
         socket_app,
         host=host,
         port=port,
-        log_level="info" if not debug else "debug"
+        log_level=log_level if not debug else "debug"
     ) 
