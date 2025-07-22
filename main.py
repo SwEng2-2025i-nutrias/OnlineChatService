@@ -208,7 +208,9 @@ async def get_user_chats_endpoint(
                     {
                         "user_id": p["user_id"],
                         "role": p["role"],
-                        "joined_at": p["joined_at"].isoformat()
+                        "joined_at": p["joined_at"].isoformat(),
+                        "user_name": p.get("user_name", "Usuario"),
+                        "user_email": p.get("user_email", "")
                     }
                     for p in chat.participants
                 ],
