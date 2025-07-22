@@ -15,11 +15,18 @@ class AuthMiddleware:
             'AUTH_SERVICE_URL', 
             'http://localhost:5001/auth/validate-token'
         )
-        self.use_mock_auth = os.getenv('USE_MOCK_AUTH', 'false').lower() == 'true'
+        # FORZAR uso del mock para testing
+        self.use_mock_auth = os.getenv('USE_MOCK_AUTH', 'true').lower() == 'true'
         self.security = HTTPBearer()
         
+        print(f"🔧 AuthMiddleware configurado:")
+        print(f"   use_mock_auth: {self.use_mock_auth}")
+        print(f"   USE_MOCK_AUTH env: {os.getenv('USE_MOCK_AUTH')}")
+        
         if self.use_mock_auth:
-            print("🧪 Usando servicio mock de autenticación para desarrollo")
+            print("🧪 ✅ Usando servicio mock de autenticación para desarrollo")
+        else:
+            print(f"🌐 ❌ Usando servicio externo: {self.auth_service_url}")
     
     async def _validate_token_async(self, token: str) -> Dict[str, Any]:
         """Valida el token contra el servicio de autenticación de forma asíncrona"""

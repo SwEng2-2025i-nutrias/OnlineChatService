@@ -5,9 +5,22 @@ Script para generar tokens JWT de prueba para el servicio de chat
 
 import os
 import sys
+from dotenv import load_dotenv
 
 # Agregar el directorio raíz al path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Cargar variables de entorno desde .env
+load_dotenv()
+
+# Verificar que las variables de entorno necesarias estén configuradas
+if not os.getenv('JWT_SECRET_KEY'):
+    print("⚠️ Advertencia: JWT_SECRET_KEY no está configurado. Usando valor por defecto.")
+    os.environ['JWT_SECRET_KEY'] = 'test-secret-key-only-for-development'
+
+if not os.getenv('USE_MOCK_AUTH'):
+    print("⚠️ Advertencia: USE_MOCK_AUTH no está configurado. Usando valor por defecto.")
+    os.environ['USE_MOCK_AUTH'] = 'true'
 
 from infrastructure.auth.mock_auth_service import mock_auth_service, get_test_tokens
 
@@ -63,8 +76,9 @@ def main():
     print("   3. Pega el token en el campo 'Token JWT'")
     print("   4. Haz clic en 'Autenticar'")
     
+    api_base_url = f"http://{os.getenv('HOST', 'localhost')}:{os.getenv('PORT', '8000')}"
     print("\n🌐 También puedes usar los tokens en API REST:")
-    print("   curl -H 'Authorization: Bearer <TOKEN>' http://localhost:8000/api/...")
+    print(f"   curl -H 'Authorization: Bearer <TOKEN>' {api_base_url}/api/...")
 
 if __name__ == "__main__":
     main() 
